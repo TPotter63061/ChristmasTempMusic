@@ -78,6 +78,8 @@ public class mainScreenController {
             System.out.println("Title: " + metadata.get("title"));
             System.out.println("Artists: " + metadata.get("xmpDM:artist"));
             System.out.println("Genre: " + metadata.get("xmpDM:genre"));
+            System.out.println("Duration(ms): " + metadata.get("xmpDM:duration"));
+            System.out.println();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

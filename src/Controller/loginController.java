@@ -21,7 +21,7 @@ public class loginController {
 
     @FXML protected void handleLoginButtonPress(ActionEvent event) {
         String username = usernameField.getText();
-        String password = usernameField.getText();
+        String password = passwordField.getText();
         ArrayList<users> list = new ArrayList<>();
         database = new DatabaseConnection("musicPlayer.db");
         usersService.selectAll(list, database);

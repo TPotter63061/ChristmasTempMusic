@@ -1,12 +1,11 @@
+package Controller;
+
 import Model.DatabaseConnection;
-import Model.artists;
-import Model.artistsService;
+
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.*;
 import javafx.application.Application;
-
-import java.util.ArrayList;
 
 public class loginLaunch extends Application{
     public static DatabaseConnection database;

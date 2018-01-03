@@ -22,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Observable;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.tika.exception.TikaException;
@@ -64,6 +63,8 @@ public class mainScreenController implements Initializable {
     ObservableList<tableTrack> songsToAdd = FXCollections.observableArrayList();
     private tableTrack selected;
     private MediaPlayer mediaPlayer;
+    private Media media;
+    private Boolean playing;
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
@@ -105,22 +106,16 @@ public class mainScreenController implements Initializable {
     }
 
     private void playSong(){
-        System.out.println(selected.getPath());
+        if(playing == true){
+            mediaPlayer.stop();
+        }
         String path = "C:/Users/choco/Desktop/ChristmasTempMusic" + selected.getPath();
-        Media media = new Media(new File(path).toURI().toString());
-        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        media = new Media(new File(path).toURI().toString());
+        mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
         endTime.setText(selected.getDuration() + "    ");
         songTitle.setText(selected.getName() + "-" + selected.getArtist());
         startTime.setText("00:00");
-        volumeSlider.setValue(mediaPlayer.getVolume()*100);
-        volumeSlider.valueProperty().addListener(new InvalidationListener() {
-            @Override
-            public void invalidated(javafx.beans.Observable observable) {
-                mediaPlayer.setVolume(volumeSlider.getValue()/100);
-
-            }
-        });
     }
 
     private void addToDatabase(File file) {
@@ -228,6 +223,35 @@ public class mainScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //set up columns
+        String path = "C:/Users/choco/Desktop/ChristmasTempMusic/Songs/start.mp3";
+        Media media = new Media(new File(path).toURI().toString());
+        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setAutoPlay(true);
+        endTime.setText("00:00" + "    ");
+        songTitle.setText("");
+        startTime.setText("00:00");
+        volumeSlider.setValue(50);
+        volumeSlider.valueProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(javafx.beans.Observable observable) {
+                mediaPlayer.setVolume(volumeSlider.getValue()/100);
+
+            }
+        });
+        mediaPlayer.setOnEndOfMedia(new Runnable() {
+            @Override
+            public void run() {
+                playing = false;
+            }
+        });
+
+        mediaPlayer.setOnReady(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer.play();
+                playing = true;
+            }
+        });
         tableView.setRowFactory(tv -> {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {

@@ -57,14 +57,9 @@ public class trackPlaysService {
         try {
             if (existingItem == null) {
                 PreparedStatement statement = database.newStatement("INSERT INTO trackPlays (userID, trackID, timesPlayed) VALUES (?,?,?)");
-                statement.setInt(0, itemToSave.getUserID());
-                statement.setInt(1, itemToSave.getTrackID());
-                statement.setInt(2, itemToSave.getTimesPlayed());
-                database.executeUpdate(statement);
-            }
-            else {
-                PreparedStatement statement = database.newStatement("UPDATE trackPlays SET userID, trackID, timesPlayed = ? WHERE userID = ?, trackID = ?");
-                statement.setInt(2, itemToSave.getTimesPlayed());
+                statement.setInt(1, itemToSave.getUserID());
+                statement.setInt(2, itemToSave.getTrackID());
+                statement.setInt(3, itemToSave.getTimesPlayed());
                 database.executeUpdate(statement);
             }
         } catch (SQLException resultsException) {
@@ -81,5 +76,5 @@ public class trackPlaysService {
         }catch (SQLException resultsException){
             System.out.println("Database deletion error: " + resultsException.getMessage());
         }
-}
+    }
 }

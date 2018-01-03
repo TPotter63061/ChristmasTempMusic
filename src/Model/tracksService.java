@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class tracksService {
 
     public static void selectAll(List<tracks> targetList, DatabaseConnection database){
-        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length FROM tracks ORDER BY artistID");
+        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length, path FROM tracks ORDER BY artistID");
         try{
             if(statement != null){
                 ResultSet results = database.executeQuery(statement);
@@ -19,7 +19,8 @@ public class tracksService {
                                 results.getInt("trackID"),
                                 results.getInt("artistID"),
                                 results.getString("trackName"),
-                                results.getInt("length")
+                                results.getString("length"),
+                                results.getString("path")
                         ));
                     }
                 }
@@ -31,7 +32,7 @@ public class tracksService {
 
     public static tracks selectById(int id, DatabaseConnection database){
         tracks result = null;
-        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length FROM tracks WHERE id=?");
+        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length, path FROM tracks WHERE id=?");
 
         try{
             if(statement != null){
@@ -43,7 +44,8 @@ public class tracksService {
                             results.getInt("trackID"),
                             results.getInt("artistID"),
                             results.getString("trackName"),
-                            results.getInt("length")
+                            results.getString("length"),
+                            results.getString("path")
                     );
                 }
             }
@@ -59,17 +61,17 @@ public class tracksService {
 
         try {
             if (existingItem == null) {
-                PreparedStatement statement = database.newStatement("INSERT INTO tracks (trackID, artistID, trackName, length) VALUES (?,?,?,?)");
-                statement.setInt(0, itemToSave.getTrackID());
-                statement.setInt(1, itemToSave.getArtistID());
-                statement.setString(2, itemToSave.getTrackName());
-                statement.setInt(3, itemToSave.getLength());
+                PreparedStatement statement = database.newStatement("INSERT INTO tracks (trackID, artistID, trackName, length, path) VALUES (?,?,?,?,?)");
+                statement.setInt(2, itemToSave.getArtistID());
+                statement.setString(3, itemToSave.getTrackName());
+                statement.setString(4, itemToSave.getLength());
+                statement.setString(5,itemToSave.getPath());
                 database.executeUpdate(statement);
             }
             else {
-                PreparedStatement statement = database.newStatement("UPDATE tracks SET trackID, artistID, trackName, length= ? WHERE trackID = ?, artistID = ?");
+                PreparedStatement statement = database.newStatement("UPDATE tracks SET trackID, artistID, trackName, length,path= ? WHERE trackID = ?, artistID = ?");
                 statement.setString(1, itemToSave.getTrackName());
-                statement.setInt(2, itemToSave.getLength());
+                statement.setString(2, itemToSave.getLength());
                 database.executeUpdate(statement);
             }
         } catch (SQLException resultsException) {

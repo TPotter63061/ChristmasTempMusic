@@ -15,7 +15,6 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.effect.DropShadow?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -42,7 +41,6 @@
                   </Label>
                   <ProgressBar fx:id="progBar" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="18.0" prefWidth="285.0" progress="0.0" />
                   <Label fx:id="endTime" minWidth="-Infinity" text="end" />
-                  <ImageView fitHeight="45.0" fitWidth="52.0" opacity="0.0" pickOnBounds="true" preserveRatio="true" />
                   <Label fx:id="songTitle" minWidth="-Infinity" text="&quot;current song - artist&quot;" />
                </children>
             </HBox>
@@ -74,78 +72,40 @@
             </items>
           </Menu>
         </menus>
-         <effect>
-            <DropShadow />
-         </effect>
       </MenuBar>
       <SplitPane dividerPositions="0.15" maxHeight="1.7976931348623157E308" prefHeight="2000.0" prefWidth="1920.0" style="-fx-background-color: rgba(178,178,178,1);">
          <items>
-            <VBox prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(204,204,204,1);">
-               <children>
-                  <Label prefHeight="653.0" prefWidth="367.0" text="Playlist names&#10;&#10;New playlist&#10;&#10;remove playlist&#10;&#10;recently played&#10;&#10;most played&#10;&#10;Genres(dropdown)" />
-               </children>
-            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: rgba(204,204,204,1);" />
             <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
               <tabs>
                 <Tab closable="false" text="Library">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <TableView prefHeight="2000.0" prefWidth="1920.0">
+                              <TableView fx:id="tableView" prefHeight="2000.0" prefWidth="1920.0">
                                 <columns>
-                                  <TableColumn prefWidth="150.0" text="Name" />
-                                  <TableColumn minWidth="0.0" prefWidth="78.0" text="Time" />
-                                    <TableColumn prefWidth="208.0" text="Artist" />
-                                    <TableColumn prefWidth="157.0" text="Album" />
-                                    <TableColumn prefWidth="145.0" text="Genre" />
-                                    <TableColumn prefWidth="56.0" text="Plays" />
+                                  <TableColumn fx:id="nameCol" prefWidth="150.0" text="Name" />
+                                  <TableColumn fx:id="durationCol" minWidth="0.0" prefWidth="78.0" text="Duration" />
+                                    <TableColumn fx:id="artistCol" prefWidth="208.0" text="Artist" />
+                                    <TableColumn fx:id="genreCol" prefWidth="145.0" text="Genre" />
+                                    <TableColumn fx:id="playsCol" prefWidth="114.0" text="Plays" />
                                 </columns>
-                                 <effect>
-                                    <DropShadow />
-                                 </effect>
-                              </TableView>
-                           </children></AnchorPane>
-                  </content>
-                </Tab>
-                  <Tab closable="false" text="Song Queue">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                           <children>
-                              <TableView prefHeight="2000.0" prefWidth="1920.0">
-                                 <columns>
-                                    <TableColumn prefWidth="150.0" text="Name" />
-                                    <TableColumn minWidth="0.0" prefWidth="78.0" text="Time" />
-                                    <TableColumn prefWidth="208.0" text="Artist" />
-                                    <TableColumn prefWidth="157.0" text="Album" />
-                                    <TableColumn prefWidth="145.0" text="Genre" />
-                                    <TableColumn prefWidth="56.0" text="Plays" />
-                                 </columns>
-                                 <effect>
-                                    <DropShadow />
-                                 </effect>
-                              </TableView>
-                           </children></AnchorPane>
-                    </content>
-                  </Tab>
-                <Tab closable="false" text="No Playlist Selected">
-                  <content>
-                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                           <children>
-                              <TableView prefHeight="2000.0" prefWidth="1920.0">
-                                 <columns>
-                                    <TableColumn prefWidth="150.0" text="Name" />
-                                    <TableColumn minWidth="0.0" prefWidth="78.0" text="Time" />
-                                    <TableColumn prefWidth="208.0" text="Artist" />
-                                    <TableColumn prefWidth="157.0" text="Album" />
-                                    <TableColumn prefWidth="145.0" text="Genre" />
-                                    <TableColumn prefWidth="56.0" text="Plays" />
-                                 </columns>
                                  <effect>
                                     <DropShadow />
                                  </effect>
                               </TableView>
                            </children>
                         </AnchorPane>
+                  </content>
+                </Tab>
+                  <Tab closable="false" text="Song Queue">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                    </content>
+                  </Tab>
+                <Tab closable="false" text="No Playlist Selected">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>
                 </Tab>
               </tabs>

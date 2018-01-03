@@ -29,7 +29,7 @@ public class artistsService {
     public static artists selectById(int id, DatabaseConnection database){
         artists result = null;
 
-        PreparedStatement statement = database.newStatement("Select artistID, artistName, genre FROM artists WHERE id=?");
+        PreparedStatement statement = database.newStatement("Select artistID, artistName, genre FROM artists WHERE artistID=?");
 
         try{
             if(statement != null){

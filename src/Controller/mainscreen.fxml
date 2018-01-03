@@ -82,7 +82,7 @@
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <TableView fx:id="tableView" prefHeight="2000.0" prefWidth="1920.0">
+                              <TableView fx:id="tableView" onMouseClicked="#handleSongClickedInTable" prefHeight="2000.0" prefWidth="1920.0">
                                 <columns>
                                   <TableColumn fx:id="nameCol" prefWidth="150.0" text="Name" />
                                   <TableColumn fx:id="durationCol" minWidth="0.0" prefWidth="78.0" text="Duration" />

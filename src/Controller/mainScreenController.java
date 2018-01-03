@@ -1,33 +1,30 @@
 package Controller;
 
 import Model.*;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
-import java.lang.reflect.Array;
 import java.net.URL;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.*;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Observable;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -36,9 +33,6 @@ import org.apache.tika.parser.mp3.Mp3Parser;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.crypto.Data;
-
 
 public class mainScreenController implements Initializable {
 
@@ -68,6 +62,8 @@ public class mainScreenController implements Initializable {
     private TableColumn<tableTrack, Integer> playsCol;
     File cwd = new File("Songs/").getAbsoluteFile();
     ObservableList<tableTrack> songsToAdd = FXCollections.observableArrayList();
+    private tableTrack selected;
+    private MediaPlayer mediaPlayer;
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
@@ -88,6 +84,10 @@ public class mainScreenController implements Initializable {
     protected void handleSearchButtonPress(ActionEvent event) {
 
     }
+    @FXML
+    protected void handleSongClickedInTable(ActionEvent event){
+
+    }
 
     @FXML
     protected void handleAddSong(ActionEvent event) {
@@ -102,6 +102,25 @@ public class mainScreenController implements Initializable {
             }
             moveToLibrary(fileList);
         }
+    }
+
+    private void playSong(){
+        System.out.println(selected.getPath());
+        String path = "C:/Users/choco/Desktop/ChristmasTempMusic" + selected.getPath();
+        Media media = new Media(new File(path).toURI().toString());
+        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setAutoPlay(true);
+        endTime.setText(selected.getDuration() + "    ");
+        songTitle.setText(selected.getName() + "-" + selected.getArtist());
+        startTime.setText("00:00");
+        volumeSlider.setValue(mediaPlayer.getVolume()*100);
+        volumeSlider.valueProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(javafx.beans.Observable observable) {
+                mediaPlayer.setVolume(volumeSlider.getValue()/100);
+
+            }
+        });
     }
 
     private void addToDatabase(File file) {
@@ -209,6 +228,17 @@ public class mainScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //set up columns
+        tableView.setRowFactory(tv -> {
+            TableRow<tableTrack> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    tableTrack rowData = row.getItem();
+                    selected = rowData;
+                    playSong();
+                }
+            });
+            return row ;
+        });
         nameCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
         artistCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
         genreCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
@@ -230,7 +260,7 @@ public class mainScreenController implements Initializable {
             for (artists a : artistList) {
                 if (a.getArtistID() == t.getArtistID()) {
                     System.out.println("adding track");
-                    tableTrack newRow = new tableTrack(t.getTrackName(), a.getArtistName(), checkGenre(a.getGenre()), getDuration(t.getLength()), 0);
+                    tableTrack newRow = new tableTrack(t.getTrackName(), a.getArtistName(), checkGenre(a.getGenre()), getDuration(t.getLength()), 0, t.getPath());
                     System.out.println("created");
                     songsToAdd.add(newRow);
                 }

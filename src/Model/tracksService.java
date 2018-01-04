@@ -55,9 +55,8 @@ public class tracksService {
         return result;
     }
     public static void save(tracks itemToSave, DatabaseConnection database) {
-
         tracks existingItem = null;
-        if (itemToSave.getTrackID() != 0) existingItem = selectById(itemToSave.getTrackID(), database);
+       // if (itemToSave.getTrackID() != 0) existingItem = selectById(itemToSave.getTrackID(), database);
 
         try {
             if (existingItem == null) {

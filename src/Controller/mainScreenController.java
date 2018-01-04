@@ -64,7 +64,7 @@ public class mainScreenController implements Initializable {
     private tableTrack selected;
     private MediaPlayer mediaPlayer;
     private Media media;
-    private Boolean playing;
+    private Boolean playerInitialised;
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
@@ -99,17 +99,19 @@ public class mainScreenController implements Initializable {
         if (fileList != null) {
             for (File f : fileList) {
                 addToDatabase(f);
-                getMetaDataTracks(f);
+                addToTable(getMetaDataTracks(f), getMetaDataArtists(f));
+                tableView.refresh();
             }
             moveToLibrary(fileList);
         }
     }
+    private void addToTable(tracks t, artists a){
+        tableTrack newRow = new tableTrack(t.getTrackName(),a.getArtistName(),a.getGenre(),getDuration(t.getLength()),0,t.getPath());
+        songsToAdd.add(newRow);
+    }
 
     private void playSong(){
-        if(playing == true){
-            mediaPlayer.stop();
-        }
-        String path = "C:/Users/choco/Desktop/ChristmasTempMusic" + selected.getPath();
+        String path = "ChristmasTempMusic" + selected.getPath();
         media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
@@ -123,7 +125,6 @@ public class mainScreenController implements Initializable {
         ArrayList<artists> artistList = new ArrayList<>();
         artistsService.selectAll(artistList, loginLaunch.database);
         Boolean inDatabase = false;
-        String artistID = null;
         artists artist = null;
         for (artists a : artistList) {
             try {
@@ -139,10 +140,8 @@ public class mainScreenController implements Initializable {
             track.setArtistID(artist.getArtistID());
             tracksService.save(track, loginLaunch.database);
         } else {
-            artist = getMetaDataArtists(file);
-            artistsService.save(artist, loginLaunch.database);
-            track.setArtistID(artist.getArtistID());
-            tracksService.save(track, loginLaunch.database);
+            artistsService.save(toSave, loginLaunch.database);
+            addToDatabase(file);
         }
         ArrayList<users> uList = new ArrayList<>();
         usersService.selectAll(uList, loginLaunch.database);
@@ -164,7 +163,6 @@ public class mainScreenController implements Initializable {
             for(String name : metadataNames){
                 System.out.println(name + ": " + metadata.get(name));
             }/*/
-            System.out.println(file.getAbsolutePath());
             String path = file.getAbsolutePath();
             String[] items = path.split("\\\\");
             path = items[items.length - 1];
@@ -223,7 +221,7 @@ public class mainScreenController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //set up columns
-        String path = "C:/Users/choco/Desktop/ChristmasTempMusic/Songs/start.mp3";
+        String path = "C:/Users/63061/IdeaProjects/ChristmasTempMusic/Songs/start.mp3";
         Media media = new Media(new File(path).toURI().toString());
         MediaPlayer mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
@@ -241,7 +239,7 @@ public class mainScreenController implements Initializable {
         mediaPlayer.setOnEndOfMedia(new Runnable() {
             @Override
             public void run() {
-                playing = false;
+                playerInitialised = false;
             }
         });
 
@@ -249,7 +247,7 @@ public class mainScreenController implements Initializable {
             @Override
             public void run() {
                 mediaPlayer.play();
-                playing = true;
+                playerInitialised = true;
             }
         });
         tableView.setRowFactory(tv -> {

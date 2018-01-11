@@ -29,6 +29,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.mp3.Mp3Parser;
+import org.tukaani.xz.check.Check;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -37,6 +38,8 @@ public class mainScreenController implements Initializable {
 
     @FXML
     TextField searchField;
+    @FXML
+    CheckBox repeatCheckBox;
     @FXML
     Slider volumeSlider;
     @FXML
@@ -64,7 +67,8 @@ public class mainScreenController implements Initializable {
     private tableTrack selected;
     private MediaPlayer mediaPlayer;
     private Media media;
-    private Boolean playerInitialised;
+    private Boolean paused;
+    private Boolean repeat = false;
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
@@ -73,12 +77,33 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handlePlayButtonPress(ActionEvent event) {
+        if ((mediaPlayer != null) && (paused == false)) {
+            mediaPlayer.pause();
+            paused = true;
+        }else if((mediaPlayer != null) && (paused = true)){
+            mediaPlayer.play();
+            paused = false;
+        }
 
     }
 
     @FXML
     protected void handleNextButtonPress(ActionEvent event) {
 
+    }
+    @FXML
+    protected void handleRepeatAction(ActionEvent event){
+        if(repeat == true){
+            repeat = !repeat;
+            if(mediaPlayer != null){
+                mediaPlayer.setCycleCount(1);
+            }
+        }else{
+            repeat = !repeat;
+            if(mediaPlayer != null){
+                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            }
+        }
     }
 
     @FXML
@@ -89,7 +114,6 @@ public class mainScreenController implements Initializable {
     protected void handleSongClickedInTable(ActionEvent event){
 
     }
-
     @FXML
     protected void handleAddSong(ActionEvent event) {
         Stage stage = new Stage();
@@ -111,13 +135,27 @@ public class mainScreenController implements Initializable {
     }
 
     private void playSong(){
-        String path = "ChristmasTempMusic" + selected.getPath();
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
+        String path = "C:/Users/63061/IdeaProjects/ChristmasTempMusic/" + selected.getPath();
         media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
         endTime.setText(selected.getDuration() + "    ");
         songTitle.setText(selected.getName() + "-" + selected.getArtist());
         startTime.setText("00:00");
+        mediaPlayer.setVolume(volumeSlider.getValue()/100);
+        if(repeat == true){
+            if(mediaPlayer != null){
+                mediaPlayer.setCycleCount(1);
+            }
+        }else{
+            if(mediaPlayer != null){
+                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            }
+        }
+        paused = false;
     }
 
     private void addToDatabase(File file) {
@@ -229,27 +267,6 @@ public class mainScreenController implements Initializable {
         songTitle.setText("");
         startTime.setText("00:00");
         volumeSlider.setValue(50);
-        volumeSlider.valueProperty().addListener(new InvalidationListener() {
-            @Override
-            public void invalidated(javafx.beans.Observable observable) {
-                mediaPlayer.setVolume(volumeSlider.getValue()/100);
-
-            }
-        });
-        mediaPlayer.setOnEndOfMedia(new Runnable() {
-            @Override
-            public void run() {
-                playerInitialised = false;
-            }
-        });
-
-        mediaPlayer.setOnReady(new Runnable() {
-            @Override
-            public void run() {
-                mediaPlayer.play();
-                playerInitialised = true;
-            }
-        });
         tableView.setRowFactory(tv -> {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {

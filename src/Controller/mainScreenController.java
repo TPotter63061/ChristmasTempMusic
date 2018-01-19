@@ -17,6 +17,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import javafx.util.Duration;
 import org.apache.commons.io.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -45,7 +47,7 @@ public class mainScreenController implements Initializable {
     @FXML
     Label startTime;
     @FXML
-    ProgressBar progBar;
+    Slider progBar;
     @FXML
     Label songTitle;
     @FXML
@@ -133,7 +135,11 @@ public class mainScreenController implements Initializable {
         tableTrack newRow = new tableTrack(t.getTrackName(),a.getArtistName(),a.getGenre(),getDuration(t.getLength()),0,t.getPath());
         songsToAdd.add(newRow);
     }
-
+    private double toSeconds(String s){
+        String[] split = s.split(":");
+        double seconds = (Double.parseDouble(split[0])) * 60;
+        return seconds + Double.parseDouble(split[1]);
+    }
     private void playSong(){
         if (mediaPlayer != null) {
             mediaPlayer.stop();
@@ -145,7 +151,22 @@ public class mainScreenController implements Initializable {
         endTime.setText(selected.getDuration() + "    ");
         songTitle.setText(selected.getName() + "-" + selected.getArtist());
         startTime.setText("00:00");
-        mediaPlayer.setVolume(volumeSlider.getValue()/100);
+        progBar.setMin(0);
+        progBar.setMax(toSeconds(selected.getDuration()));
+        volumeSlider.valueProperty().addListener((observable,oldValue,newValue) ->{
+            mediaPlayer.setVolume(newValue.doubleValue()/100);
+        });
+        progBar.valueProperty().addListener((observable,oldValue,newValue) ->{
+            //I am not proud of this
+            if(((oldValue.intValue() + 1) < newValue.intValue()) || ((oldValue.intValue() - 1) > newValue.intValue())){
+                mediaPlayer.seek(Duration.seconds(progBar.getValue()));
+            }
+        });
+        mediaPlayer.currentTimeProperty().addListener(((observable, oldValue, newValue) -> {
+            progBar.setValue(newValue.toSeconds());
+            startTime.setText(getDuration(String.valueOf(newValue.toMillis())));
+        }));
+
         if(repeat == true){
             if(mediaPlayer != null){
                 mediaPlayer.setCycleCount(1);
@@ -267,6 +288,7 @@ public class mainScreenController implements Initializable {
         songTitle.setText("");
         startTime.setText("00:00");
         volumeSlider.setValue(50);
+        mediaPlayer.setVolume(volumeSlider.getValue()/100);
         tableView.setRowFactory(tv -> {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -314,6 +336,9 @@ public class mainScreenController implements Initializable {
         int i = (int) d;
         long minutes = TimeUnit.MILLISECONDS.toMinutes(i);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(i);
+        if((seconds % 60) < 10){
+            return minutes + ":0" + seconds %60;
+        }
         return minutes + ":" + seconds % 60;
     }
 

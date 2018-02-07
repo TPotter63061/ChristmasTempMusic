@@ -77,7 +77,7 @@
                      </VBox.margin>
                   </Button>
                   <Button mnemonicParsing="false" onAction="#handleClearQueuePress" text="Clear Last Item" />
-                  <VBox prefHeight="313.0" prefWidth="189.0" />
+                  <VBox prefHeight="160.0" prefWidth="189.0" />
                   <Label text="Selected Playlist:" />
                   <Label fx:id="playlistSelectLabel" text="No Playlist Selected">
                      <VBox.margin>

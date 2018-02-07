@@ -134,15 +134,7 @@ public class mainScreenController implements Initializable {
                 playSong(tableView.getSelectionModel().getSelectedItem());
             }
         }else{
-            int currentId = tableViewQueue.getSelectionModel().getSelectedIndex();
-            if(currentId -1 >= 0){
-                //check it fits
-                tableViewQueue.getSelectionModel().select(currentId-1);
-                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
-            }else {
-                tableViewQueue.getSelectionModel().select(0);
-                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
-            }
+            playSong(currentSong);
         }
 
     }
@@ -207,7 +199,7 @@ public class mainScreenController implements Initializable {
                 Random rand = new Random();
                 tableView.getSelectionModel().select(rand.nextInt(x));
                 playSong(tableView.getSelectionModel().getSelectedItem());
-            }else {
+            }else{
                 int currentId = tableView.getSelectionModel().getSelectedIndex();
                 if (currentId + 1 < tableView.getItems().size()) {
                     //check it fits
@@ -220,15 +212,17 @@ public class mainScreenController implements Initializable {
                 }
             }
         }else{
-            int currentId = tableViewQueue.getSelectionModel().getSelectedIndex();
-            if(currentId +1 < tableViewQueue.getItems().size()){
-                //check it fits
-                tableViewQueue.getSelectionModel().select(currentId+1);
-                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
+            if(1 < tableViewQueue.getItems().size()){
+                //checks that there is another song next in the queue
+                queue.remove(0);
+                tableView.refresh();
+                playSong(queue.get(0));
             }else{
-                //loops back around
-                tableViewQueue.getSelectionModel().select(0);
-                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
+                //end of queue
+                queue.remove(0);
+                //stops media from playing
+                mediaPlayer.stop();
+                tableView.refresh();
             }
         }
 
@@ -296,7 +290,7 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handleClearQueuePress(ActionEvent event){
-        queue.remove(queue.size());
+        queue.remove(queue.size()-1);
     }
     @FXML
     protected void handleAddSong(ActionEvent event) {
@@ -343,8 +337,9 @@ public class mainScreenController implements Initializable {
                 }
             }
         }else if(playlist == false){
-            playSong(queue.get(0));
             queue.remove(0);
+            tableViewQueue.refresh();
+            playSong(queue.get(0));
         }else if(playlist){
             if (repeat) {
                 playSong(currentSong);
@@ -377,6 +372,7 @@ public class mainScreenController implements Initializable {
         media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
+        mediaPlayer.setVolume(volumeSlider.getValue() / 100);
         endTime.setText(toPlay.getDuration() + "    ");
         songTitle.setText(toPlay.getName() + "-" + toPlay.getArtist());
         startTime.setText("00:00");

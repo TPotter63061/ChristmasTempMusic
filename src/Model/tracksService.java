@@ -32,7 +32,7 @@ public class tracksService {
 
     public static tracks selectById(int id, DatabaseConnection database){
         tracks result = null;
-        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length, path FROM tracks WHERE id=?");
+        PreparedStatement statement = database.newStatement("SELECT trackID, artistID, trackName, length, path FROM tracks WHERE trackID=?");
 
         try{
             if(statement != null){
@@ -78,7 +78,7 @@ public class tracksService {
         }
     }
     public static void deleteById(int id, DatabaseConnection database){
-        PreparedStatement statement =  database.newStatement("DELETE FROM tracks WHERE id=?");
+        PreparedStatement statement =  database.newStatement("DELETE FROM tracks WHERE trackID=?");
         try{
             if(statement != null){
                 statement.setInt(1, id);

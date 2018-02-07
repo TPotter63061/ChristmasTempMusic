@@ -2,6 +2,8 @@ package Controller;
 
 import Model.*;
 import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.tika.exception.TikaException;
@@ -36,6 +39,10 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.swing.*;
+
+import static Controller.loginController.currentAccount;
+
 public class mainScreenController implements Initializable {
 
     @FXML
@@ -45,6 +52,8 @@ public class mainScreenController implements Initializable {
     @FXML
     Slider volumeSlider;
     @FXML
+    Label playlistSelectLabel;
+    @FXML
     Label startTime;
     @FXML
     Slider progBar;
@@ -52,6 +61,8 @@ public class mainScreenController implements Initializable {
     Label songTitle;
     @FXML
     Label endTime;
+    @FXML
+    Tab playlistTab;
     @FXML
     private TableView<tableTrack> tableView;
     @FXML
@@ -63,6 +74,18 @@ public class mainScreenController implements Initializable {
     @FXML
     private TableColumn<tableTrack, String> genreCol;
     @FXML
+    private TableView<tableTrack> tableViewPlaylist;
+    @FXML
+    private TableColumn<tableTrack, String> nameColPlaylist;
+    @FXML
+    private TableColumn<tableTrack, String> durationColPlaylist;
+    @FXML
+    private TableColumn<tableTrack, String> artistColPlaylist;
+    @FXML
+    private TableColumn<tableTrack, String> genreColPlaylist;
+    @FXML TextField playlistTextBox;
+    @FXML ChoiceBox choiceBox;
+    @FXML
     private TableColumn<tableTrack, Integer> playsCol;
     File cwd = new File("Songs/").getAbsoluteFile();
     ObservableList<tableTrack> songsToAdd = FXCollections.observableArrayList();
@@ -71,9 +94,37 @@ public class mainScreenController implements Initializable {
     private Media media;
     private Boolean paused;
     private Boolean repeat = false;
+    private tableTrack currentSong;
+    private Boolean shuffle = false;
+    private Boolean playlist = false;
+    private playlists currentPlaylist;
+    private ArrayList<playlists> usersPlaylists = new ArrayList<>();
+    ObservableList<tableTrack> queue = FXCollections.observableArrayList();
+    ObservableList<String> usersPlaylistsNames = FXCollections.observableArrayList();
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
+        if(playlist){
+            int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
+            if(currentId -1 >= 0){
+                //check it fits
+                tableViewPlaylist.getSelectionModel().select(currentId-1);
+                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }else {
+                tableViewPlaylist.getSelectionModel().select(0);
+                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }
+        }else{
+            int currentId = tableView.getSelectionModel().getSelectedIndex();
+            if(currentId -1 >= 0){
+                //check it fits
+                tableView.getSelectionModel().select(currentId-1);
+                playSong(tableView.getSelectionModel().getSelectedItem());
+            }else {
+                tableView.getSelectionModel().select(0);
+                playSong(tableView.getSelectionModel().getSelectedItem());
+            }
+        }
 
     }
 
@@ -89,28 +140,102 @@ public class mainScreenController implements Initializable {
 
     }
 
-    @FXML
-    protected void handleNextButtonPress(ActionEvent event) {
 
-    }
     @FXML
-    protected void handleRepeatAction(ActionEvent event){
-        if(repeat == true){
-            repeat = !repeat;
-            if(mediaPlayer != null){
-                mediaPlayer.setCycleCount(1);
-            }
+    protected void handleCreatePlaylistButton(ActionEvent event) {
+        System.out.println("creating playlist: " + playlistTextBox.getText());
+        System.out.println(currentAccount.getUserID());
+        if (currentAccount!=null) {
+            playlistsService.save(new playlists(0, currentAccount.getUserID(), playlistTextBox.getText(), 0), loginLaunch.database);
         }else{
-            repeat = !repeat;
-            if(mediaPlayer != null){
-                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-            }
+            System.out.println("Create an account to unlock this feature");
         }
     }
 
     @FXML
-    protected void handleSearchButtonPress(ActionEvent event) {
+    protected void addSongToPlaylist(ActionEvent event){
+        tableTrack selectedSong = tableView.getSelectionModel().getSelectedItem();
+        int trackID = getTrackID(selectedSong.getName());
+        playlistSongsService.save(new playlistSongs(currentPlaylist.getPlaylistID(),trackID), loginLaunch.database );
+    }
 
+    @FXML
+    protected void handleNextButtonPress(ActionEvent event) {
+        if(playlist){
+            int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
+            if(currentId +1 < tableViewPlaylist.getItems().size()){
+                //check it fits
+                tableViewPlaylist.getSelectionModel().select(currentId+1);
+                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }else{
+                //loops back around
+                tableViewPlaylist.getSelectionModel().select(0);
+                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }
+        }else if(queue.size() == 0){
+            int currentId = tableView.getSelectionModel().getSelectedIndex();
+            if(currentId +1 < tableView.getItems().size()){
+                //check it fits
+                tableView.getSelectionModel().select(currentId+1);
+                playSong(tableView.getSelectionModel().getSelectedItem());
+            }else{
+                //loops back around
+                tableView.getSelectionModel().select(0);
+                playSong(tableView.getSelectionModel().getSelectedItem());
+            }
+        }
+
+    }
+    private int getTrackID(String selected){
+        ArrayList<tracks> trackMatch = new ArrayList<>();
+        tracksService.selectAll(trackMatch,loginLaunch.database);
+        for(tracks x : trackMatch){
+            System.out.println(selected);
+            if(x.getTrackName().equals(selected)){
+                return x.getTrackID();
+            }
+        }
+        return 0;
+    }
+
+    @FXML
+    protected void handleDeleteSong(ActionEvent event){
+        tracksService.deleteById(getTrackID(tableView.getSelectionModel().getSelectedItem().getName()), loginLaunch.database);
+        try {
+            FileUtils.forceDelete(FileUtils.getFile("C:/Users/choco/Desktop/FinalPhase/final/" + selected.getPath()));
+        }catch (Exception i){
+            System.out.println(i.getMessage());
+        }
+        if(songsToAdd.size() ==1 ){
+            songsToAdd.remove(0);
+        }else {
+            songsToAdd.remove(songsToAdd.indexOf(selected));
+            tableView.refresh();
+        }
+
+    }
+
+    @FXML
+    protected void handleClearButtonPress(ActionEvent event){
+        tableView.setItems(songsToAdd);
+    }
+    @FXML
+    protected void handleRepeatAction(ActionEvent event){
+        repeat = !repeat;
+    }
+    @FXML
+    protected void handleShuffleAction(ActionEvent event){
+        shuffle = !shuffle;
+    }
+    @FXML
+    protected void handleSearchButtonPress(ActionEvent event) {
+        ObservableList<tableTrack> searchList = FXCollections.observableArrayList();
+        for(tableTrack x : songsToAdd){
+            if(x.getArtist().contains(searchField.getText()) || (x.getName().contains(searchField.getText()))){
+                searchList.add(x);
+            }
+        }
+        tableView.setItems(searchList);
     }
     @FXML
     protected void handleSongClickedInTable(ActionEvent event){
@@ -140,25 +265,54 @@ public class mainScreenController implements Initializable {
         double seconds = (Double.parseDouble(split[0])) * 60;
         return seconds + Double.parseDouble(split[1]);
     }
-    private void playSong(){
+
+    private void songEnd(){
+        if(playlist == false && queue.size() == 0) {
+            if (repeat) {
+                playSong(currentSong);
+            } else if (shuffle) {
+                Random rand = new Random();
+                rand.nextInt(songsToAdd.size());
+                playSong(songsToAdd.get(rand.nextInt(songsToAdd.size())));
+            }else{
+                int currentId = tableView.getSelectionModel().getSelectedIndex();
+                if(currentId +1 < tableView.getItems().size()){
+                    //check it fits
+                    tableView.getSelectionModel().select(currentId+1);
+                    playSong(tableView.getSelectionModel().getSelectedItem());
+                }else{
+                    //loops back around
+                    tableView.getSelectionModel().select(0);
+                    playSong(tableView.getSelectionModel().getSelectedItem());
+                }
+            }
+        }else if(playlist == false){
+            playSong(queue.get(0));
+            queue.remove(0);
+        }else if(playlist){
+
+        }
+    }
+    private void playSong(tableTrack toPlay) {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
         }
-        String path = "C:/Users/63061/IdeaProjects/ChristmasTempMusic/" + selected.getPath();
+        currentSong = toPlay;
+        String path = "C:/Users/choco/Desktop/FinalPhase/final/" + toPlay.getPath();
         media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setAutoPlay(true);
-        endTime.setText(selected.getDuration() + "    ");
-        songTitle.setText(selected.getName() + "-" + selected.getArtist());
+        endTime.setText(toPlay.getDuration() + "    ");
+        songTitle.setText(toPlay.getName() + "-" + toPlay.getArtist());
         startTime.setText("00:00");
         progBar.setMin(0);
-        progBar.setMax(toSeconds(selected.getDuration()));
-        volumeSlider.valueProperty().addListener((observable,oldValue,newValue) ->{
-            mediaPlayer.setVolume(newValue.doubleValue()/100);
+        progBar.setMax(toSeconds(toPlay.getDuration()));
+        volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mediaPlayer.setVolume(newValue.doubleValue() / 100);
         });
-        progBar.valueProperty().addListener((observable,oldValue,newValue) ->{
+        progBar.valueProperty().addListener((observable, oldValue, newValue) -> {
             //I am not proud of this
-            if(((oldValue.intValue() + 1) < newValue.intValue()) || ((oldValue.intValue() - 1) > newValue.intValue())){
+            if (((oldValue.intValue() + 1) < newValue.intValue()) || ((oldValue.intValue() - 1) > newValue.intValue())) {
                 mediaPlayer.seek(Duration.seconds(progBar.getValue()));
             }
         });
@@ -166,16 +320,7 @@ public class mainScreenController implements Initializable {
             progBar.setValue(newValue.toSeconds());
             startTime.setText(getDuration(String.valueOf(newValue.toMillis())));
         }));
-
-        if(repeat == true){
-            if(mediaPlayer != null){
-                mediaPlayer.setCycleCount(1);
-            }
-        }else{
-            if(mediaPlayer != null){
-                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-            }
-        }
+        mediaPlayer.setOnEndOfMedia(() -> songEnd());
         paused = false;
     }
 
@@ -200,7 +345,8 @@ public class mainScreenController implements Initializable {
             tracksService.save(track, loginLaunch.database);
         } else {
             artistsService.save(toSave, loginLaunch.database);
-            addToDatabase(file);
+            track.setArtistID(artist.getArtistID());
+            tracksService.save(track, loginLaunch.database);
         }
         ArrayList<users> uList = new ArrayList<>();
         usersService.selectAll(uList, loginLaunch.database);
@@ -277,34 +423,101 @@ public class mainScreenController implements Initializable {
         }
     }
 
+    private ObservableList<tableTrack> getPlaylistItems(){
+        ArrayList<playlistSongs> tracksFromAllPlaylist = new ArrayList<>();
+        playlistSongsService.selectAll(tracksFromAllPlaylist, loginLaunch.database);
+        ArrayList<Integer> trackIDSFromPlaylist = new ArrayList<>();
+        for(playlistSongs x : tracksFromAllPlaylist){
+            if(x.getPlaylistID() == currentPlaylist.getPlaylistID()){
+                trackIDSFromPlaylist.add(x.getTrackID());
+                System.out.println(x.getTrackID());
+            }
+        }
+        ArrayList<tracks> tracksFromSelectedPlaylist = new ArrayList<>();
+        for(Integer a : trackIDSFromPlaylist){
+            tracksFromSelectedPlaylist.add(tracksService.selectById(a, loginLaunch.database));
+        }
+        ObservableList<tableTrack> toAddToPlaylistView = FXCollections.observableArrayList();
+        for(tracks t : tracksFromSelectedPlaylist){
+            artists a = artistsService.selectById(t.getArtistID(), loginLaunch.database);
+            toAddToPlaylistView.add(new tableTrack(t.getTrackName(), a.getArtistName(), checkGenre(a.getGenre()), getDuration(t.getLength()), 0, t.getPath()));
+        }
+
+        return toAddToPlaylistView;
+    }
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //set up columns
-        String path = "C:/Users/63061/IdeaProjects/ChristmasTempMusic/Songs/start.mp3";
-        Media media = new Media(new File(path).toURI().toString());
-        MediaPlayer mediaPlayer = new MediaPlayer(media);
-        mediaPlayer.setAutoPlay(true);
+        ArrayList<playlists> allPlaylists = new ArrayList<>();
+        playlistsService.selectAll(allPlaylists, loginLaunch.database);
+        usersPlaylistsNames.add("No Playlist");
+        if(currentAccount!=null){
+            for(playlists p : allPlaylists){
+                if(p.getUserID() == currentAccount.getUserID()){
+                    usersPlaylistsNames.add(p.getPlaylistName());
+                    usersPlaylists.add(p);
+                }
+            }
+        }
+        choiceBox.setItems(usersPlaylistsNames);
+        choiceBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                Boolean found = false;
+                for(playlists x : usersPlaylists){
+                    if(x.getPlaylistName().equals(usersPlaylistsNames.get(newValue.intValue()))){
+                        currentPlaylist = x;
+                        playlistSelectLabel.setText(currentPlaylist.getPlaylistName());
+                        playlistTab.setText("Playlist: " + currentPlaylist.getPlaylistName());
+                        found = true;
+                        playlist = true;
+                        tableViewPlaylist.setItems(getPlaylistItems());
+                    }
+                }
+                if (found == false) {
+                    playlistTab.setText("No Playlist Selected");
+                    currentPlaylist = null;
+                    playlist = false;
+                    tableViewPlaylist.setItems(null);
+                }
+            }
+        });
         endTime.setText("00:00" + "    ");
         songTitle.setText("");
         startTime.setText("00:00");
         volumeSlider.setValue(50);
-        mediaPlayer.setVolume(volumeSlider.getValue()/100);
         tableView.setRowFactory(tv -> {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
                     tableTrack rowData = row.getItem();
                     selected = rowData;
-                    playSong();
+                    playSong(selected);
                 }
             });
             return row ;
         });
+        tableViewPlaylist.setRowFactory(tv -> {
+            TableRow<tableTrack> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    tableTrack rowData = row.getItem();
+                    selected = rowData;
+                    playSong(selected);
+                }
+            });
+            return row ;
+        });
+        nameColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
+        artistColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
+        genreColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
+        durationColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("duration"));
+
         nameCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
         artistCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
         genreCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
         durationCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("duration"));
         playsCol.setCellValueFactory(new PropertyValueFactory<tableTrack, Integer>("plays"));
+
         //load data/*/
         System.out.println("Loading table...");
         tableView.setItems(getTracks());

@@ -48,8 +48,6 @@ public class mainScreenController implements Initializable {
     @FXML
     TextField searchField;
     @FXML
-    CheckBox repeatCheckBox;
-    @FXML
     Slider volumeSlider;
     @FXML
     Label playlistSelectLabel;
@@ -83,8 +81,19 @@ public class mainScreenController implements Initializable {
     private TableColumn<tableTrack, String> artistColPlaylist;
     @FXML
     private TableColumn<tableTrack, String> genreColPlaylist;
+    @FXML
+    private TableView<tableTrack> tableViewQueue;
+    @FXML
+    private TableColumn<tableTrack, String> nameColQueue;
+    @FXML
+    private TableColumn<tableTrack, String> durationColQueue;
+    @FXML
+    private TableColumn<tableTrack, String> artistColQueue;
+    @FXML
+    private TableColumn<tableTrack, String> genreColQueue;
     @FXML TextField playlistTextBox;
     @FXML ChoiceBox choiceBox;
+    @FXML TabPane tabPane;
     @FXML
     private TableColumn<tableTrack, Integer> playsCol;
     File cwd = new File("Songs/").getAbsoluteFile();
@@ -104,7 +113,7 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
-        if(playlist){
+        if(tabPane.getSelectionModel().getSelectedItem().getId().equals("playlistTab")){
             int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
             if(currentId -1 >= 0){
                 //check it fits
@@ -114,7 +123,7 @@ public class mainScreenController implements Initializable {
                 tableViewPlaylist.getSelectionModel().select(0);
                 playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
             }
-        }else{
+        }else if(tabPane.getSelectionModel().getSelectedItem().getId().equals("library")){
             int currentId = tableView.getSelectionModel().getSelectedIndex();
             if(currentId -1 >= 0){
                 //check it fits
@@ -124,10 +133,23 @@ public class mainScreenController implements Initializable {
                 tableView.getSelectionModel().select(0);
                 playSong(tableView.getSelectionModel().getSelectedItem());
             }
+        }else{
+            int currentId = tableViewQueue.getSelectionModel().getSelectedIndex();
+            if(currentId -1 >= 0){
+                //check it fits
+                tableViewQueue.getSelectionModel().select(currentId-1);
+                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
+            }else {
+                tableViewQueue.getSelectionModel().select(0);
+                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
+            }
         }
 
     }
+    @FXML
+    protected  void handleSongClickedInTable(ActionEvent event){
 
+    }
     @FXML
     protected void handlePlayButtonPress(ActionEvent event) {
         if ((mediaPlayer != null) && (paused == false)) {
@@ -161,27 +183,52 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handleNextButtonPress(ActionEvent event) {
-        if(playlist){
-            int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
-            if(currentId +1 < tableViewPlaylist.getItems().size()){
-                //check it fits
-                tableViewPlaylist.getSelectionModel().select(currentId+1);
+        if(tabPane.getSelectionModel().getSelectedItem().getId().equals("playlistTab")){
+            if(shuffle) {
+                int x = tableViewPlaylist.getItems().size();
+                Random rand = new Random();
+                tableViewPlaylist.getSelectionModel().select(rand.nextInt(x));
                 playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
-            }else{
-                //loops back around
-                tableViewPlaylist.getSelectionModel().select(0);
-                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }else {
+                int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
+                if (currentId + 1 < tableViewPlaylist.getItems().size()) {
+                    //check it fits
+                    tableViewPlaylist.getSelectionModel().select(currentId + 1);
+                    playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+                } else {
+                    //loops back around
+                    tableViewPlaylist.getSelectionModel().select(0);
+                    playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+                }
             }
-        }else if(queue.size() == 0){
-            int currentId = tableView.getSelectionModel().getSelectedIndex();
-            if(currentId +1 < tableView.getItems().size()){
-                //check it fits
-                tableView.getSelectionModel().select(currentId+1);
+        }else if(tabPane.getSelectionModel().getSelectedItem().getId().equals("library")){
+            if(shuffle){
+                int x = tableView.getItems().size();
+                Random rand = new Random();
+                tableView.getSelectionModel().select(rand.nextInt(x));
                 playSong(tableView.getSelectionModel().getSelectedItem());
+            }else {
+                int currentId = tableView.getSelectionModel().getSelectedIndex();
+                if (currentId + 1 < tableView.getItems().size()) {
+                    //check it fits
+                    tableView.getSelectionModel().select(currentId + 1);
+                    playSong(tableView.getSelectionModel().getSelectedItem());
+                } else {
+                    //loops back around
+                    tableView.getSelectionModel().select(0);
+                    playSong(tableView.getSelectionModel().getSelectedItem());
+                }
+            }
+        }else{
+            int currentId = tableViewQueue.getSelectionModel().getSelectedIndex();
+            if(currentId +1 < tableViewQueue.getItems().size()){
+                //check it fits
+                tableViewQueue.getSelectionModel().select(currentId+1);
+                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
             }else{
                 //loops back around
-                tableView.getSelectionModel().select(0);
-                playSong(tableView.getSelectionModel().getSelectedItem());
+                tableViewQueue.getSelectionModel().select(0);
+                playSong(tableViewQueue.getSelectionModel().getSelectedItem());
             }
         }
 
@@ -238,8 +285,18 @@ public class mainScreenController implements Initializable {
         tableView.setItems(searchList);
     }
     @FXML
-    protected void handleSongClickedInTable(ActionEvent event){
+    protected void handleAddToQueuePress(ActionEvent event){
+        if(!playlist){
+            queue.add(tableView.getSelectionModel().getSelectedItem());
+        }else{
+            System.out.println("Deselect playlist to create queue");
+        }
+        tableViewQueue.refresh();
+    }
 
+    @FXML
+    protected void handleClearQueuePress(ActionEvent event){
+        queue.remove(queue.size());
     }
     @FXML
     protected void handleAddSong(ActionEvent event) {
@@ -272,7 +329,6 @@ public class mainScreenController implements Initializable {
                 playSong(currentSong);
             } else if (shuffle) {
                 Random rand = new Random();
-                rand.nextInt(songsToAdd.size());
                 playSong(songsToAdd.get(rand.nextInt(songsToAdd.size())));
             }else{
                 int currentId = tableView.getSelectionModel().getSelectedIndex();
@@ -290,6 +346,25 @@ public class mainScreenController implements Initializable {
             playSong(queue.get(0));
             queue.remove(0);
         }else if(playlist){
+            if (repeat) {
+                playSong(currentSong);
+            } else if (shuffle) {
+                int x = tableViewPlaylist.getItems().size();
+                Random rand = new Random();
+                tableViewPlaylist.getSelectionModel().select(rand.nextInt(x));
+                playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+            }else{
+                int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
+                if(currentId +1 < tableViewPlaylist.getItems().size()){
+                    //check it fits
+                    tableViewPlaylist.getSelectionModel().select(currentId+1);
+                    playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+                }else{
+                    //loops back around
+                    tableViewPlaylist.getSelectionModel().select(0);
+                    playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
+                }
+            }
 
         }
     }
@@ -488,10 +563,14 @@ public class mainScreenController implements Initializable {
         tableView.setRowFactory(tv -> {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
-                    tableTrack rowData = row.getItem();
-                    selected = rowData;
-                    playSong(selected);
+                if(playlist){
+                    System.out.println("Playlist Active close playlist to listen to songs");
+                }else {
+                    if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                        tableTrack rowData = row.getItem();
+                        selected = rowData;
+                        playSong(selected);
+                    }
                 }
             });
             return row ;
@@ -507,10 +586,26 @@ public class mainScreenController implements Initializable {
             });
             return row ;
         });
+        tableViewQueue.setRowFactory(tv -> {
+            TableRow<tableTrack> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    tableTrack rowData = row.getItem();
+                    selected = rowData;
+                    playSong(selected);
+                }
+            });
+            return row ;
+        });
         nameColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
         artistColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
         genreColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
         durationColPlaylist.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("duration"));
+
+        nameColQueue.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
+        artistColQueue.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
+        genreColQueue.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
+        durationColQueue.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("duration"));
 
         nameCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("name"));
         artistCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
@@ -521,6 +616,7 @@ public class mainScreenController implements Initializable {
         //load data/*/
         System.out.println("Loading table...");
         tableView.setItems(getTracks());
+        tableViewQueue.setItems(queue);
         System.out.println("Success!");
 
     }

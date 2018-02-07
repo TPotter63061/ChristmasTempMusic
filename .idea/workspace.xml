@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="66903df5-70f8-4ed5-b73f-397c6ed55457" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/musicPlayer.db" afterPath="$PROJECT_DIR$/musicPlayer.db" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/musicPlayer/Controller/mainScreenController.class" afterPath="$PROJECT_DIR$/out/production/musicPlayer/Controller/mainScreenController.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Controller/mainScreenController.java" afterPath="$PROJECT_DIR$/src/Controller/mainScreenController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Controller/mainscreen.fxml" afterPath="$PROJECT_DIR$/src/Controller/mainscreen.fxml" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,7 +22,7 @@
       <file leaf-file-name="mainScreenController.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Controller/mainScreenController.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1326">
+            <state relative-caret-position="-4897">
               <caret line="226" column="9" lean-forward="true" selection-start-line="226" selection-start-column="9" selection-end-line="226" selection-end-column="9" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -593,7 +590,14 @@
       <option name="project" value="LOCAL" />
       <updated>1518022382290</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Possibly finished">
+      <created>1518028669154</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1518028669154</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -1018,7 +1022,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Controller/mainScreenController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1326">
+        <state relative-caret-position="-4897">
           <caret line="226" column="9" lean-forward="true" selection-start-line="226" selection-start-column="9" selection-end-line="226" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />

@@ -30,7 +30,7 @@ public class trackPlaysService {
     public static trackPlays selectById(int id, DatabaseConnection database){
         trackPlays result = null;
 
-        PreparedStatement statement = database.newStatement("Select userID, trackID, timesPlayed FROM trackPlays WHERE id=?");
+        PreparedStatement statement = database.newStatement("Select userID, trackID, timesPlayed FROM trackPlays WHERE trackID=?");
 
         try{
             if(statement != null){
@@ -67,7 +67,7 @@ public class trackPlaysService {
         }
     }
     public static void deleteById(int id, DatabaseConnection database){
-        PreparedStatement statement =  database.newStatement("DELETE FROM trackPlays WHERE id=?");
+        PreparedStatement statement =  database.newStatement("DELETE FROM trackPlays WHERE trackID=?");
         try{
             if(statement != null){
                 statement.setInt(1, id);

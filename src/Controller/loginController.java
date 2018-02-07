@@ -10,6 +10,8 @@ import javafx.scene.control.TextField;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.*;
+
+import javax.swing.*;
 import java.io.IOException;
 
 
@@ -61,7 +63,7 @@ public class loginController {
                 System.out.println("Incorrect Login Details");
             }
         } else {
-            System.out.println("Username does not exist, try creating an account");
+            JOptionPane.showMessageDialog(null, "Username does not exist, try creating an account");
         }
     }
 

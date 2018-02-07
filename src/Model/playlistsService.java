@@ -29,7 +29,7 @@ public class playlistsService {
 
     public static playlists selectById(int id, DatabaseConnection database){
         playlists result = null;
-        PreparedStatement statement = database.newStatement("SELECT playlistID, userID, playlistName, timesPlayed FROM playlist WHERE id=?");
+        PreparedStatement statement = database.newStatement("SELECT playlistID, userID, playlistName, timesPlayed FROM playlist WHERE playlistID=?");
 
         try{
             if(statement != null){
@@ -74,7 +74,7 @@ public class playlistsService {
         }
     }
     public static void deleteById(int id, DatabaseConnection database){
-        PreparedStatement statement =  database.newStatement("DELETE FROM playlists WHERE id=?");
+        PreparedStatement statement =  database.newStatement("DELETE FROM playlist WHERE playlistID=?");
         try{
             if(statement != null){
                 statement.setInt(1, id);

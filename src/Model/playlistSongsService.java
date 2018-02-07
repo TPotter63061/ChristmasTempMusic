@@ -28,7 +28,7 @@ public class playlistSongsService {
     public static playlistSongs selectById(int id, DatabaseConnection database){
         playlistSongs result = null;
 
-        PreparedStatement statement = database.newStatement("Select playlistID, trackID, genre FROM artists WHERE id=?");
+        PreparedStatement statement = database.newStatement("Select playlistID, trackID, genre FROM artists WHERE playlistID=?");
 
         try{
             if(statement != null){
@@ -67,7 +67,7 @@ public class playlistSongsService {
         }
     }
     public static void deleteById(int id, DatabaseConnection database){
-        PreparedStatement statement =  database.newStatement("DELETE FROM playlistSongs WHERE id=?");
+        PreparedStatement statement =  database.newStatement("DELETE FROM playlistSongs WHERE playlistID=?");
 
         try{
             if(statement != null){

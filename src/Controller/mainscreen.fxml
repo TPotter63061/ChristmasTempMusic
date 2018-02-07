@@ -98,6 +98,7 @@
                   <Label text="Create A New Playlist" />
                   <TextField fx:id="playlistTextBox" maxWidth="-Infinity" prefHeight="25.0" prefWidth="155.0" promptText="Enter Playlist Name" />
                   <Button mnemonicParsing="false" onAction="#handleCreatePlaylistButton" text="Create Playlist" />
+                  <Button mnemonicParsing="false" onAction="#handleDeleteCurrentPlaylist" text="Delete Current Playlist" />
                </children></VBox>
             <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
               <tabs>

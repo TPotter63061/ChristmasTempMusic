@@ -29,7 +29,7 @@ public class usersService {
 
     public static users selectById(int id, DatabaseConnection database){
         users result = null;
-        PreparedStatement statement = database.newStatement("SELECT userID, username, password, salt FROM users WHERE id=?");
+        PreparedStatement statement = database.newStatement("SELECT userID, username, password, salt FROM users WHERE userID=?");
 
         try{
             if(statement != null){
@@ -76,7 +76,7 @@ public class usersService {
         }
     }
     public static void deleteById(int id, DatabaseConnection database){
-        PreparedStatement statement =  database.newStatement("DELETE FROM users WHERE id=?");
+        PreparedStatement statement =  database.newStatement("DELETE FROM users WHERE userID=?");
         try{
             if(statement != null){
                 statement.setInt(1, id);

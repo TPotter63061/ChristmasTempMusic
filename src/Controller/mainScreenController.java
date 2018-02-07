@@ -153,8 +153,15 @@ public class mainScreenController implements Initializable {
         }
 
     }
-
-
+    @FXML
+    protected void handleDeleteCurrentPlaylist(ActionEvent event){
+        try{
+            playlistsService.deleteById(currentPlaylist.getPlaylistID(), loginLaunch.database);
+        }catch(Exception e){}
+        usersPlaylists.remove(currentPlaylist);
+        usersPlaylistsNames.remove(currentPlaylist.getPlaylistName());
+        choiceBox.setItems(usersPlaylistsNames);
+    }
     @FXML
     protected void handleCreatePlaylistButton(ActionEvent event) {
         System.out.println("creating playlist: " + playlistTextBox.getText());
@@ -162,8 +169,11 @@ public class mainScreenController implements Initializable {
         if (currentAccount!=null) {
             playlistsService.save(new playlists(0, currentAccount.getUserID(), playlistTextBox.getText(), 0), loginLaunch.database);
         }else{
-            System.out.println("Create an account to unlock this feature");
+            JOptionPane.showMessageDialog(null, "Create an account to unlock this feature");
         }
+        usersPlaylists.add(new playlists(0, currentAccount.getUserID(), playlistTextBox.getText(), 0));
+        usersPlaylistsNames.add(playlistTextBox.getText());
+        choiceBox.setItems(usersPlaylistsNames);
     }
 
     @FXML
@@ -283,7 +293,7 @@ public class mainScreenController implements Initializable {
         if(!playlist){
             queue.add(tableView.getSelectionModel().getSelectedItem());
         }else{
-            System.out.println("Deselect playlist to create queue");
+            JOptionPane.showMessageDialog(null, "Deselect playlist to create queue");
         }
         tableViewQueue.refresh();
     }
@@ -544,7 +554,7 @@ public class mainScreenController implements Initializable {
                         tableViewPlaylist.setItems(getPlaylistItems());
                     }
                 }
-                if (found == false) {
+                if (!found) {
                     playlistTab.setText("No Playlist Selected");
                     currentPlaylist = null;
                     playlist = false;
@@ -560,7 +570,7 @@ public class mainScreenController implements Initializable {
             TableRow<tableTrack> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if(playlist){
-                    System.out.println("Playlist Active close playlist to listen to songs");
+                    JOptionPane.showMessageDialog(null, "Playlist Active close playlist to listen to songs");
                 }else {
                     if (event.getClickCount() == 2 && (!row.isEmpty())) {
                         tableTrack rowData = row.getItem();

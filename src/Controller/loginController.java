@@ -1,6 +1,5 @@
 package Controller;
 
-import Model.DatabaseConnection;
 import Model.users;
 import Model.usersService;
 import javafx.event.ActionEvent;
@@ -10,11 +9,8 @@ import javafx.scene.control.TextField;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.*;
-
 import javax.swing.*;
 import java.io.IOException;
-
-
 import java.util.ArrayList;
 
 
@@ -24,18 +20,21 @@ public class loginController {
     @FXML
     private TextField passwordField;
     public static users currentAccount = null;
-    @FXML
-    private Button loginButton;
 
     @FXML
     protected void handleLoginButtonPress(ActionEvent event) throws IOException {
+        //gets data from textboxes
         String username = usernameField.getText();
         String password = passwordField.getText();
+        System.out.println("USERNAME: " + username);
+        System.out.println("PASSWORD: " + password);
         ArrayList<users> list = new ArrayList<>();
+        //selects all accounts
         usersService.selectAll(list, loginLaunch.database);
         users account = null;
         for (users p : list) {
             if (username.equals(p.getUsername())) {
+                //matching username is set to the account variable
                 account = p;
             }
         }
@@ -43,8 +42,10 @@ public class loginController {
             System.out.println(registerController.generateHash(account.getSalt() + password));
             System.out.println(account.getPassword());
             try {
+                //if hashed password in database matches the hash of the users salt and the given password
                 if (account.getPassword().equals(registerController.generateHash(account.getSalt() + password))) {
                     System.out.println("Correct Login Details");
+                    //currentAccount used for playlists in mainscreen etc
                     currentAccount = account;
                     Node node = (Node) event.getSource();
                     Stage stage = (Stage) node.getScene().getWindow();
@@ -63,12 +64,14 @@ public class loginController {
                 System.out.println("Incorrect Login Details");
             }
         } else {
+            //if account = null then no user was found with the same username
             JOptionPane.showMessageDialog(null, "Username does not exist, try creating an account");
         }
     }
 
     @FXML
     protected void handleRegisterButtonPress(ActionEvent event) {
+        //launches the register screen
         Node node = (Node) event.getSource();
         Stage stage = (Stage) node.getScene().getWindow();
         Parent root = null;
@@ -87,6 +90,7 @@ public class loginController {
 
     @FXML
     protected void handleContinueButtonPress(ActionEvent event) {
+        //launches mainscreen with no account, playlist cannot be used
         Node node = (Node) event.getSource();
         Stage stage = (Stage) node.getScene().getWindow();
         Parent root = null;

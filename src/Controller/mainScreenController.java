@@ -34,7 +34,6 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.mp3.Mp3Parser;
-import org.tukaani.xz.check.Check;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -94,8 +93,6 @@ public class mainScreenController implements Initializable {
     @FXML TextField playlistTextBox;
     @FXML ChoiceBox choiceBox;
     @FXML TabPane tabPane;
-    @FXML
-    private TableColumn<tableTrack, Integer> playsCol;
     File cwd = new File("Songs/").getAbsoluteFile();
     ObservableList<tableTrack> songsToAdd = FXCollections.observableArrayList();
     private tableTrack selected;
@@ -113,6 +110,7 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handleBackButtonPress(ActionEvent event) {
+        //if playlist tab is open
         if(tabPane.getSelectionModel().getSelectedItem().getId().equals("playlistTab")){
             int currentId = tableViewPlaylist.getSelectionModel().getSelectedIndex();
             if(currentId -1 >= 0){
@@ -120,9 +118,11 @@ public class mainScreenController implements Initializable {
                 tableViewPlaylist.getSelectionModel().select(currentId-1);
                 playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
             }else {
+                //loops back around
                 tableViewPlaylist.getSelectionModel().select(0);
                 playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
             }
+            //if library tab is open
         }else if(tabPane.getSelectionModel().getSelectedItem().getId().equals("library")){
             int currentId = tableView.getSelectionModel().getSelectedIndex();
             if(currentId -1 >= 0){
@@ -130,20 +130,20 @@ public class mainScreenController implements Initializable {
                 tableView.getSelectionModel().select(currentId-1);
                 playSong(tableView.getSelectionModel().getSelectedItem());
             }else {
+                //loops back around
                 tableView.getSelectionModel().select(0);
                 playSong(tableView.getSelectionModel().getSelectedItem());
             }
         }else{
+            //else queue must be active so restart song
             playSong(currentSong);
         }
 
     }
-    @FXML
-    protected  void handleSongClickedInTable(ActionEvent event){
-
-    }
+    @FXML protected  void handleSongClickedInTable(ActionEvent event){}
     @FXML
     protected void handlePlayButtonPress(ActionEvent event) {
+        //checks if mediaplayer is active as otherwise it will throw an error
         if ((mediaPlayer != null) && (paused == false)) {
             mediaPlayer.pause();
             paused = true;
@@ -155,6 +155,7 @@ public class mainScreenController implements Initializable {
     }
     @FXML
     protected void handleDeleteCurrentPlaylist(ActionEvent event){
+        //removes playlist in the playlist table, all dependencies would be removed
         try{
             playlistsService.deleteById(currentPlaylist.getPlaylistID(), loginLaunch.database);
         }catch(Exception e){}
@@ -166,11 +167,13 @@ public class mainScreenController implements Initializable {
     protected void handleCreatePlaylistButton(ActionEvent event) {
         System.out.println("creating playlist: " + playlistTextBox.getText());
         System.out.println(currentAccount.getUserID());
+        //currentAccount must not be null otherwise we get null userIDs in database
         if (currentAccount!=null) {
             playlistsService.save(new playlists(0, currentAccount.getUserID(), playlistTextBox.getText(), 0), loginLaunch.database);
         }else{
             JOptionPane.showMessageDialog(null, "Create an account to unlock this feature");
         }
+        //update choice box
         usersPlaylists.add(new playlists(0, currentAccount.getUserID(), playlistTextBox.getText(), 0));
         usersPlaylistsNames.add(playlistTextBox.getText());
         choiceBox.setItems(usersPlaylistsNames);
@@ -178,13 +181,18 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void addSongToPlaylist(ActionEvent event){
-        tableTrack selectedSong = tableView.getSelectionModel().getSelectedItem();
-        int trackID = getTrackID(selectedSong.getName());
-        playlistSongsService.save(new playlistSongs(currentPlaylist.getPlaylistID(),trackID), loginLaunch.database );
+        //validation: checks if a user is logged in
+        if(currentAccount != null) {
+            //saves track to table
+            tableTrack selectedSong = tableView.getSelectionModel().getSelectedItem();
+            int trackID = getTrackID(selectedSong.getName());
+            playlistSongsService.save(new playlistSongs(currentPlaylist.getPlaylistID(), trackID), loginLaunch.database);
+        }
     }
 
     @FXML
     protected void handleNextButtonPress(ActionEvent event) {
+        //if playlist tab is open
         if(tabPane.getSelectionModel().getSelectedItem().getId().equals("playlistTab")){
             if(shuffle) {
                 int x = tableViewPlaylist.getItems().size();
@@ -203,6 +211,7 @@ public class mainScreenController implements Initializable {
                     playSong(tableViewPlaylist.getSelectionModel().getSelectedItem());
                 }
             }
+            //if library is open
         }else if(tabPane.getSelectionModel().getSelectedItem().getId().equals("library")){
             if(shuffle){
                 int x = tableView.getItems().size();
@@ -238,6 +247,7 @@ public class mainScreenController implements Initializable {
 
     }
     private int getTrackID(String selected){
+        //returns trackID from track name
         ArrayList<tracks> trackMatch = new ArrayList<>();
         tracksService.selectAll(trackMatch,loginLaunch.database);
         for(tracks x : trackMatch){
@@ -251,14 +261,18 @@ public class mainScreenController implements Initializable {
 
     @FXML
     protected void handleDeleteSong(ActionEvent event){
+        //delete song from database
         tracksService.deleteById(getTrackID(tableView.getSelectionModel().getSelectedItem().getName()), loginLaunch.database);
         try {
+            //delete from song folder
             FileUtils.forceDelete(FileUtils.getFile("C:/Users/choco/Desktop/FinalPhase/final/" + selected.getPath()));
         }catch (Exception i){
             System.out.println(i.getMessage());
         }
+        //delete from tableView
         if(songsToAdd.size() ==1 ){
             songsToAdd.remove(0);
+            tableView.refresh();
         }else {
             songsToAdd.remove(songsToAdd.indexOf(selected));
             tableView.refresh();
@@ -266,10 +280,12 @@ public class mainScreenController implements Initializable {
 
     }
 
+    //resets tableView
     @FXML
     protected void handleClearButtonPress(ActionEvent event){
         tableView.setItems(songsToAdd);
     }
+    //flips repeat and shuffle variables
     @FXML
     protected void handleRepeatAction(ActionEvent event){
         repeat = !repeat;
@@ -280,6 +296,7 @@ public class mainScreenController implements Initializable {
     }
     @FXML
     protected void handleSearchButtonPress(ActionEvent event) {
+        //puts a temporary searchList list into the tableView with matching components
         ObservableList<tableTrack> searchList = FXCollections.observableArrayList();
         for(tableTrack x : songsToAdd){
             if(x.getArtist().contains(searchField.getText()) || (x.getName().contains(searchField.getText()))){
@@ -290,6 +307,7 @@ public class mainScreenController implements Initializable {
     }
     @FXML
     protected void handleAddToQueuePress(ActionEvent event){
+        // adds to queue if a playlist is not playing
         if(!playlist){
             queue.add(tableView.getSelectionModel().getSelectedItem());
         }else{
@@ -297,18 +315,20 @@ public class mainScreenController implements Initializable {
         }
         tableViewQueue.refresh();
     }
-
+    //removes most recent addition
     @FXML
     protected void handleClearQueuePress(ActionEvent event){
         queue.remove(queue.size()-1);
     }
     @FXML
     protected void handleAddSong(ActionEvent event) {
+        //opens file chooser
         Stage stage = new Stage();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         List<File> fileList = fileChooser.showOpenMultipleDialog(stage);
         if (fileList != null) {
+            //for loop as can accept multiple inputs
             for (File f : fileList) {
                 addToDatabase(f);
                 addToTable(getMetaDataTracks(f), getMetaDataArtists(f));
@@ -318,16 +338,19 @@ public class mainScreenController implements Initializable {
         }
     }
     private void addToTable(tracks t, artists a){
+        //creates new row refresh is done outside of this method
         tableTrack newRow = new tableTrack(t.getTrackName(),a.getArtistName(),a.getGenre(),getDuration(t.getLength()),0,t.getPath());
         songsToAdd.add(newRow);
     }
     private double toSeconds(String s){
+        //returns double converts strings in the form Minutes:Seconds
         String[] split = s.split(":");
         double seconds = (Double.parseDouble(split[0])) * 60;
         return seconds + Double.parseDouble(split[1]);
     }
 
     private void songEnd(){
+        //if library is in use
         if(playlist == false && queue.size() == 0) {
             if (repeat) {
                 playSong(currentSong);
@@ -346,10 +369,12 @@ public class mainScreenController implements Initializable {
                     playSong(tableView.getSelectionModel().getSelectedItem());
                 }
             }
+            //if queue is in use
         }else if(playlist == false){
             queue.remove(0);
             tableViewQueue.refresh();
             playSong(queue.get(0));
+            //sele playlist must be in use
         }else if(playlist){
             if (repeat) {
                 playSong(currentSong);
@@ -374,10 +399,13 @@ public class mainScreenController implements Initializable {
         }
     }
     private void playSong(tableTrack toPlay) {
+        //stops any existing media
         if (mediaPlayer != null) {
             mediaPlayer.stop();
         }
+        //sets current song for song progression purposes (next back repeat etc)
         currentSong = toPlay;
+        //initialises media player
         String path = "C:/Users/choco/Desktop/FinalPhase/final/" + toPlay.getPath();
         media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
@@ -386,21 +414,26 @@ public class mainScreenController implements Initializable {
         endTime.setText(toPlay.getDuration() + "    ");
         songTitle.setText(toPlay.getName() + "-" + toPlay.getArtist());
         startTime.setText("00:00");
+        //establishes progrbar max/min
         progBar.setMin(0);
         progBar.setMax(toSeconds(toPlay.getDuration()));
+        //volume slider listener
         volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             mediaPlayer.setVolume(newValue.doubleValue() / 100);
         });
+        //prog bar drag listener
         progBar.valueProperty().addListener((observable, oldValue, newValue) -> {
-            //I am not proud of this
+            //stops the two listeners fighting so only seeks on drags greater than 1 second
             if (((oldValue.intValue() + 1) < newValue.intValue()) || ((oldValue.intValue() - 1) > newValue.intValue())) {
                 mediaPlayer.seek(Duration.seconds(progBar.getValue()));
             }
         });
+        //mediaplayer listener for prog bar progression
         mediaPlayer.currentTimeProperty().addListener(((observable, oldValue, newValue) -> {
             progBar.setValue(newValue.toSeconds());
             startTime.setText(getDuration(String.valueOf(newValue.toMillis())));
         }));
+        //when song ends songEnd() is run
         mediaPlayer.setOnEndOfMedia(() -> songEnd());
         paused = false;
     }
@@ -411,6 +444,7 @@ public class mainScreenController implements Initializable {
         artistsService.selectAll(artistList, loginLaunch.database);
         Boolean inDatabase = false;
         artists artist = null;
+        //checks if artist is already saved
         for (artists a : artistList) {
             try {
                 if (a.getArtistName().equals(toSave.getArtistName())) {
@@ -445,10 +479,6 @@ public class mainScreenController implements Initializable {
             ParseContext parseCtx = new ParseContext();
             parser.parse(input, handler, metadata, parseCtx);
             input.close();
-            /*/String[] metadataNames = metadata.names();
-            for(String name : metadataNames){
-                System.out.println(name + ": " + metadata.get(name));
-            }/*/
             String path = file.getAbsolutePath();
             String[] items = path.split("\\\\");
             path = items[items.length - 1];
@@ -617,7 +647,6 @@ public class mainScreenController implements Initializable {
         artistCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("artist"));
         genreCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("genre"));
         durationCol.setCellValueFactory(new PropertyValueFactory<tableTrack, String>("duration"));
-        playsCol.setCellValueFactory(new PropertyValueFactory<tableTrack, Integer>("plays"));
 
         //load data/*/
         System.out.println("Loading table...");

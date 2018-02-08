@@ -11,6 +11,7 @@ public class loginLaunch extends Application{
     public static DatabaseConnection database;
     @Override
     public void start(Stage stage) throws Exception {
+        //this will be accessed throughout the application
         database = new DatabaseConnection("musicPlayer.db");
         Parent root = FXMLLoader.load(getClass().getResource("loginscreen.fxml"));
         Scene scene = new Scene(root, 600, 332);
